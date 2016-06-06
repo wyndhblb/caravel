@@ -13,7 +13,11 @@ function nvd3Vis(slice) {
   var colorKey = 'key';
 
   var render = function () {
-    $.getJSON(slice.jsonEndpoint(), function (payload) {
+    d3.json(slice.jsonEndpoint(), function (error, payload) {
+        if (error) {
+          slice.error(error.responseText);
+          return '';
+        }
         var fd = payload.form_data;
         var viz_type = fd.viz_type;
         var f = d3.format('.3s');
@@ -214,9 +218,6 @@ function nvd3Vis(slice) {
         });
 
         slice.done(payload);
-      })
-      .fail(function (xhr) {
-        slice.error(xhr.responseText);
       });
   };
 

@@ -20,8 +20,8 @@ env:
 before_install:
   - npm install -g npm@'>=2.7.1'
 before_script:
-  - mysql -e 'drop database if exists airflow; create database airflow' -u root
-  - psql -c 'create database airflow;' -U postgres
+  - mysql -e 'drop database if exists caravel; create database caravel' -u root
+  - psql -c 'create database caravel;' -U postgres
   - export PATH=${PATH}:/tmp/hive/bin
 install:
   - pip install --upgrade pip

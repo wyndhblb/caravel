@@ -30,7 +30,7 @@ from pydruid.utils.filters import Dimension, Filter
 from pydruid.utils.postaggregator import Postaggregator
 from six import string_types
 from sqlalchemy import (
-    Column, Integer, String, ForeignKey, Text, Boolean, DateTime, Date,
+    Column, Integer, String, ForeignKey, UnicodeText, Boolean, DateTime, Date,
     Table, create_engine, MetaData, desc, select, and_, func)
 from sqlalchemy.engine import reflection
 from sqlalchemy.ext.declarative import declared_attr
@@ -116,7 +116,7 @@ class Url(Model, AuditMixinNullable):
 
     __tablename__ = 'url'
     id = Column(Integer, primary_key=True)
-    url = Column(Text)
+    url = Column(UnicodeText)
 
 
 class CssTemplate(Model, AuditMixinNullable):
@@ -126,7 +126,7 @@ class CssTemplate(Model, AuditMixinNullable):
     __tablename__ = 'css_templates'
     id = Column(Integer, primary_key=True)
     template_name = Column(String(250))
-    css = Column(Text, default='')
+    css = Column(UnicodeText, default='')
 
 
 slice_user = Table('slice_user', Model.metadata,
@@ -148,8 +148,8 @@ class Slice(Model, AuditMixinNullable):
     datasource_type = Column(String(200))
     datasource_name = Column(String(2000))
     viz_type = Column(String(250))
-    params = Column(Text)
-    description = Column(Text)
+    params = Column(UnicodeText)
+    description = Column(UnicodeText)
     cache_timeout = Column(Integer)
     perm = Column(String(2000))
 
@@ -281,10 +281,10 @@ class Dashboard(Model, AuditMixinNullable):
     __tablename__ = 'dashboards'
     id = Column(Integer, primary_key=True)
     dashboard_title = Column(String(500))
-    position_json = Column(Text)
-    description = Column(Text)
-    css = Column(Text)
-    json_metadata = Column(Text)
+    position_json = Column(UnicodeText)
+    description = Column(UnicodeText)
+    css = Column(UnicodeText)
+    json_metadata = Column(UnicodeText)
     slug = Column(String(255), unique=True)
     slices = relationship(
         'Slice', secondary=dashboard_slices, backref='dashboards')
@@ -367,7 +367,7 @@ class Database(Model, AuditMixinNullable):
     sqlalchemy_uri = Column(String(1024))
     password = Column(EncryptedType(String(1024), config.get('SECRET_KEY')))
     cache_timeout = Column(Integer)
-    extra = Column(Text, default=textwrap.dedent("""\
+    extra = Column(UnicodeText, default=textwrap.dedent("""\
     {
         "metadata_params": {},
         "engine_params": {}
@@ -505,8 +505,8 @@ class SqlaTable(Model, Queryable, AuditMixinNullable):
     id = Column(Integer, primary_key=True)
     table_name = Column(String(250))
     main_dttm_col = Column(String(250))
-    description = Column(Text)
-    default_endpoint = Column(Text)
+    description = Column(UnicodeText)
+    default_endpoint = Column(UnicodeText)
     database_id = Column(Integer, ForeignKey('dbs.id'), nullable=False)
     is_featured = Column(Boolean, default=False)
     user_id = Column(Integer, ForeignKey('ab_user.id'))
@@ -734,7 +734,6 @@ class SqlaTable(Model, Queryable, AuditMixinNullable):
             qry.compile(
                 engine, compile_kwargs={"literal_binds": True},),
             )
-        print(sql)
         df = pd.read_sql_query(
             sql=sql,
             con=engine
@@ -857,8 +856,8 @@ class SqlMetric(Model, AuditMixinNullable):
     table_id = Column(Integer, ForeignKey('tables.id'))
     table = relationship(
         'SqlaTable', backref='metrics', foreign_keys=[table_id])
-    expression = Column(Text)
-    description = Column(Text)
+    expression = Column(UnicodeText)
+    description = Column(UnicodeText)
 
     @property
     def sqla_col(self):
@@ -886,8 +885,8 @@ class TableColumn(Model, AuditMixinNullable):
     max = Column(Boolean, default=False)
     min = Column(Boolean, default=False)
     filterable = Column(Boolean, default=False)
-    expression = Column(Text, default='')
-    description = Column(Text, default='')
+    expression = Column(UnicodeText, default='')
+    description = Column(UnicodeText, default='')
 
     def __repr__(self):
         return self.column_name
@@ -959,8 +958,8 @@ class DruidDatasource(Model, AuditMixinNullable, Queryable):
     datasource_name = Column(String(255), unique=True)
     is_featured = Column(Boolean, default=False)
     is_hidden = Column(Boolean, default=False)
-    description = Column(Text)
-    default_endpoint = Column(Text)
+    description = Column(UnicodeText)
+    default_endpoint = Column(UnicodeText)
     user_id = Column(Integer, ForeignKey('ab_user.id'))
     owner = relationship('User', backref='datasources', foreign_keys=[user_id])
     cluster_name = Column(
@@ -1040,7 +1039,7 @@ class DruidDatasource(Model, AuditMixinNullable, Queryable):
     @classmethod
     def sync_to_db(cls, name, cluster):
         """Fetches metadata for that datasource and merges the Caravel db"""
-        print("Syncing Druid datasource [{}]".format(name))
+        logging.info("Syncing Druid datasource [{}]".format(name))
         session = get_session()
         datasource = session.query(cls).filter_by(datasource_name=name).first()
         if not datasource:
@@ -1284,7 +1283,7 @@ class Log(Model):
     user_id = Column(Integer, ForeignKey('ab_user.id'))
     dashboard_id = Column(Integer)
     slice_id = Column(Integer)
-    json = Column(Text)
+    json = Column(UnicodeText)
     user = relationship('User', backref='logs', foreign_keys=[user_id])
     dttm = Column(DateTime, default=func.now())
     dt = Column(Date, default=date.today())
@@ -1328,8 +1327,8 @@ class DruidMetric(Model, AuditMixinNullable):
     # Setting enable_typechecks=False disables polymorphic inheritance.
     datasource = relationship('DruidDatasource', backref='metrics',
                               enable_typechecks=False)
-    json = Column(Text)
-    description = Column(Text)
+    json = Column(UnicodeText)
+    description = Column(UnicodeText)
 
     @property
     def json_obj(self):
@@ -1361,7 +1360,7 @@ class DruidColumn(Model, AuditMixinNullable):
     max = Column(Boolean, default=False)
     min = Column(Boolean, default=False)
     filterable = Column(Boolean, default=False)
-    description = Column(Text)
+    description = Column(UnicodeText)
 
     def __repr__(self):
         return self.column_name

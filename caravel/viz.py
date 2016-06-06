@@ -10,7 +10,6 @@ from __future__ import unicode_literals
 
 import copy
 import hashlib
-import json
 import logging
 import uuid
 from collections import OrderedDict, defaultdict
@@ -20,7 +19,7 @@ import numpy as np
 from flask import request
 from flask_babelpkg import lazy_gettext as _
 from markdown import markdown
-from pandas.io.json import dumps
+import simplejson as json
 from six import string_types
 from werkzeug.datastructures import ImmutableMultiDict
 from werkzeug.urls import Href
@@ -262,7 +261,9 @@ class BaseViz(object):
 
     def json_dumps(self, obj):
         """Used by get_json, can be overridden to use specific switches"""
-        return dumps(obj)
+        return json.dumps(
+            obj, default=utils.json_int_dttm_ser, ignore_nan=True,
+            encoding='utf-8')
 
     @property
     def data(self):
@@ -303,7 +304,7 @@ class BaseViz(object):
 
     @property
     def json_data(self):
-        return dumps(self.data)
+        return json.dumps(self.data)
 
 
 class TableViz(BaseViz):
@@ -975,7 +976,7 @@ class NVD3TimeSeriesViz(NVD3Viz):
         for col in df.columns:
             if col == '':
                 cols.append('N/A')
-            elif col == None:
+            elif col is None:
                 cols.append('NULL')
             else:
                 cols.append(col)

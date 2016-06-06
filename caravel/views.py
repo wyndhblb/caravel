@@ -99,7 +99,6 @@ class FilterDashboard(CaravelFilter):
             .query(Slice.id)
             .filter(Slice.perm.in_(self.get_perms()))
         )
-        print([r for r in slice_ids_qry.all()])
         query = query.filter(
             Dash.id.in_(
                 db.session.query(Dash.id)
@@ -108,7 +107,6 @@ class FilterDashboard(CaravelFilter):
                 .filter(Slice.id.in_(slice_ids_qry))
             )
         )
-        print(query)
         return query
 
 
@@ -312,7 +310,7 @@ appbuilder.add_view(
     "Databases",
     label=_("Databases"),
     icon="fa-database",
-    category=_("Sources"),
+    category=__("Sources"),
     category_icon='fa-database',)
 
 
@@ -369,7 +367,7 @@ class TableModelView(CaravelModelView, DeleteMixin):  # noqa
 appbuilder.add_view(
     TableModelView,
     __("Tables"),
-    category=_("Sources"),
+    category=__("Sources"),
     icon='fa-table',)
 
 
@@ -401,7 +399,7 @@ if config['DRUID_IS_ACTIVE']:
         DruidClusterModelView,
         __("Druid Clusters"),
         icon="fa-cubes",
-        category=_("Sources"),
+        category=__("Sources"),
         category_icon='fa-database',)
 
 
@@ -546,7 +544,7 @@ appbuilder.add_view(
     LogModelView,
     "Action Log",
     label=_("Action Log"),
-    category=_("Security"),
+    category=__("Security"),
     icon="fa-list-ol")
 
 
@@ -592,7 +590,7 @@ if config['DRUID_IS_ACTIVE']:
         DruidDatasourceModelView,
         "Druid Datasources",
         label=_("Druid Datasources"),
-        category="Sources",
+        category=__("Sources"),
         icon="fa-cube")
 
 
@@ -719,7 +717,6 @@ class Caravel(BaseView):
             resp = Response(
                 payload,
                 status=status,
-                headers=generate_download_headers("json"),
                 mimetype="application/json")
             return resp
         elif request.args.get("csv") == "true":
@@ -1086,7 +1083,7 @@ if config['DRUID_IS_ACTIVE']:
     appbuilder.add_link(
         "Refresh Druid Metadata",
         href='/caravel/refresh_datasources/',
-        category='Sources',
+        category=__('Sources'),
         category_icon='fa-database',
         icon="fa-cog")
 
@@ -1103,7 +1100,7 @@ appbuilder.add_view(
     "CSS Templates",
     label=_("CSS Templates"),
     icon="fa-css3",
-    category="Sources",
+    category=__("Sources"),
     category_icon='')
 
 
