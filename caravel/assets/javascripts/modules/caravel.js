@@ -10,8 +10,8 @@ import vizMap from '../../visualizations/main.js';
 const px = function () {
   let slice;
   function getParam(name) {
-    const newName = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
-    const regex = new RegExp('[\\?&]' + newName + '=([^&#]*)');
+    const formattedName = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+    const regex = new RegExp('[\\?&]' + formattedName + '=([^&#]*)');
     const results = regex.exec(location.search);
     return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
   }
