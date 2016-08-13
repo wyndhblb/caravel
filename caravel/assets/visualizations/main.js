@@ -1,3 +1,4 @@
+/* eslint-disable global-require */
 const vizMap = {
   filter_box: require('./filter_box.jsx'),
   area: require('./nvd3_vis.js'),
@@ -29,3 +30,4 @@ const vizMap = {
   world_map: require('./world_map.js'),
 };
 export default vizMap;
+/* eslint-enable */
