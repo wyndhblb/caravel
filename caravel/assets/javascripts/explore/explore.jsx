@@ -324,14 +324,7 @@ function initExploreView() {
     return {};
   }
 
-  function initSelectionToValue(element, callback) {
-    callback({
-      id: element.val(),
-      text: element.val(),
-    });
-  }
-
-  function convertSelect(selectId) {
+  function convertSelect(selectId, multiple) {
     const parent = $(selectId).parent();
     const name = $(selectId).attr('name');
     const l = [];
@@ -354,9 +347,8 @@ function initExploreView() {
     );
     $(`input[name='${name}']`).select2({
       createSearchChoice: createChoices,
-      initSelection: initSelectionToValue,
       dropdownAutoWidth: true,
-      multiple: false,
+      multiple,
       data: l,
       sortResults(data) {
         return data.sort(function (a, b) {
@@ -377,11 +369,12 @@ function initExploreView() {
     $(eq).empty();
 
     $.getJSON(slice.filterEndpoint(column), function (data) {
+      $(eq).append($('<option></option>').attr('value', null).text(''));
       $.each(data, function (key, value) {
         $(eq).append($('<option></option>').attr('value', value).text(value));
       });
       $(eq).select2('destroy');
-      convertSelect(eq);
+      convertSelect(eq, true);
     });
   }
 
@@ -480,7 +473,7 @@ function initExploreView() {
   });
 
   $('.select2_freeform').each(function () {
-    convertSelect('#' + $(this).attr('id'));
+    convertSelect('#' + $(this).attr('id'), false);
   });
 
   function prepSaveDialog() {
