@@ -860,8 +860,8 @@ class DruidDatasourceModelView(CaravelModelView, DeleteMixin):  # noqa
     related_views = [DruidColumnInlineView, DruidMetricInlineView]
     edit_columns = [
         'datasource_name', 'cluster', 'description', 'owner',
-        'is_featured', 'is_hidden', 'filter_select_enabled', 'default_endpoint',
-        'offset', 'cache_timeout']
+        'is_featured', 'is_hidden', 'filter_select_enabled',
+        'default_endpoint', 'offset', 'cache_timeout']
     add_columns = edit_columns
     page_size = 500
     base_order = ('datasource_name', 'asc')
@@ -1090,7 +1090,8 @@ class Caravel(BaseCaravelView):
         datasource_access = self.can_access(
             'datasource_access', datasource.perm)
         if not (all_datasource_access or datasource_access):
-            flash(__("You don't seem to have access to this datasource"), "danger")
+            flash(__("You don't seem to have access to this datasource"),
+                  "danger")
             return redirect(error_redirect)
 
         viz_type = request.args.get("viz_type")
