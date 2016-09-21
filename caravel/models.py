@@ -745,19 +745,20 @@ class SqlaTable(Model, Queryable, AuditMixinNullable):
         cols = {col.column_name: col for col in self.columns}
         target_col = cols[column_name]
 
-        dttm_col = cols[granularity]
-        timestamp = dttm_col.sqla_col.label('timestamp')
-        time_filter = [
-            timestamp >= text(dttm_col.dttm_sql_literal(from_dttm)),
-            timestamp <= text(dttm_col.dttm_sql_literal(to_dttm)),
-        ]
-
         tbl = table(self.table_name)
         qry = select([target_col.sqla_col])
         qry = qry.select_from(tbl)
-        qry = qry.where(and_(*time_filter))
         qry = qry.distinct(column_name)
         qry = qry.limit(limit)
+
+        if granularity:
+            dttm_col = cols[granularity]
+            timestamp = dttm_col.sqla_col.label('timestamp')
+            time_filter = [
+                timestamp >= text(dttm_col.dttm_sql_literal(from_dttm)),
+                timestamp <= text(dttm_col.dttm_sql_literal(to_dttm)),
+            ]
+            qry = qry.where(and_(*time_filter)) if granularity else qry
 
         engine = self.database.get_sqla_engine()
         sql = "{}".format(
