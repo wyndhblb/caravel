@@ -39,7 +39,7 @@ from superset.utils import has_access
 from superset.connectors.connector_registry import ConnectorRegistry
 import superset.models.core as models
 from superset.sql_parse import SupersetQuery
-from superset.connectors.sqla.models import TableColumn, SqlMetric
+
 from .base import (
     SupersetModelView, BaseSupersetView, DeleteMixin,
     SupersetFilter, get_user_roles
@@ -1796,6 +1796,10 @@ class Superset(BaseSupersetView):
         metrics = []
         for column_name, config in data.get('columns').items():
             is_dim = config.get('is_dim', False)
+            SqlaTable = ConnectorRegistry.sources['table']
+            TableColumn = SqlaTable.column_cls
+            SqlMetric = SqlaTable.metric_cls
+
             col = TableColumn(
                 column_name=column_name,
                 filterable=is_dim,
@@ -2196,7 +2200,8 @@ class Superset(BaseSupersetView):
     def refresh_datasources(self):
         """endpoint that refreshes druid datasources metadata"""
         session = db.session()
-        DruidCluster = ConnectorRegistry.sources['druid']
+        DruidDatasource = ConnectorRegistry.sources['druid']
+        DruidCluster = DruidDatasource.cluster_class
         for cluster in session.query(DruidCluster).all():
             cluster_name = cluster.cluster_name
             try:
