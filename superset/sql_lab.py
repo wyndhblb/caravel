@@ -142,7 +142,7 @@ def get_sql_results(self, query_id, return_results=True, store_results=False):
     column_names = dedup(column_names)
 
     cdf = dataframe.SupersetDataFrame(pd.DataFrame(
-        list(df_data), columns=column_names))
+        list(data), columns=column_names))
 
     query.rows = cdf.size
     query.progress = 100
