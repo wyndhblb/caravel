@@ -66,3 +66,9 @@ class ConnectorRegistry(object):
             .filter_by(id=datasource_id)
             .one()
         )
+
+    @classmethod
+    def query_datasources_by_name(
+            cls, session, database, datasource_name, schema=None):
+        datasource_class = ConnectorRegistry.sources[database.type]
+        return ConnectorRegistry.query_datasources_by_name(session, database, datasource_name, schema=None)
