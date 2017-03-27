@@ -1066,7 +1066,7 @@ class DruidDatasource(Model, BaseDatasource):
     def query_datasources_by_name(
             cls, session, database, datasource_name, schema=None):
 
-        return session.query(datasource_class)
+        return session.query(cls)
         .filter_by(cluster_name=database.id)
         .filter_by(datasource_name=datasource_name)
         .all()

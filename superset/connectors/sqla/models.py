@@ -679,7 +679,7 @@ class SqlaTable(Model, BaseDatasource):
     def query_datasources_by_name(
             cls, session, database, datasource_name, schema=None):
         query = (
-            session.query(datasource_class)
+            session.query(cls)
                 .filter_by(database_id=database.id)
                 .filter_by(table_name=datasource_name))
         if schema:
