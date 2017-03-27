@@ -986,14 +986,11 @@ class Superset(BaseSupersetView):
         if request.args.get("query") == "true":
             try:
                 query_obj = viz_obj.query_obj()
-                engine = viz_obj.datasource.database.get_sqla_engine() \
-                    if datasource_type == 'table' \
-                    else viz_obj.datasource.cluster.get_pydruid_client()
                 if datasource_type == 'druid':
                     # only retrive first phase query for druid
                     query_obj['phase'] = 1
                 query = viz_obj.datasource.get_query_str(
-                    engine, datetime.now(), **query_obj)
+                    datetime.now(), **query_obj)
             except Exception as e:
                 return json_error_response(e)
             return Response(
@@ -1220,11 +1217,8 @@ class Superset(BaseSupersetView):
     @expose("/checkbox/<model_view>/<id_>/<attr>/<value>", methods=['GET'])
     def checkbox(self, model_view, id_, attr, value):
         """endpoint for checking/unchecking any boolean in a sqla model"""
-        views = sys.modules[__name__]
-        model_view_cls = getattr(views, model_view)
-        model = model_view_cls.datamodel.obj
-
-        obj = db.session.query(model).filter_by(id=id_).first()
+        Col = ConnectorRegistry.sources['table'].column_cls
+        obj = db.session.query(Col).filter_by(id=id_).first()
         if obj:
             setattr(obj, attr, value == 'true')
             db.session.commit()
@@ -1789,6 +1783,7 @@ class Superset(BaseSupersetView):
                 filterable=is_dim,
                 groupby=is_dim,
                 is_dttm=config.get('is_date', False),
+                type=config.get('type', False),
             )
             cols.append(col)
             if is_dim:
@@ -2100,7 +2095,6 @@ class Superset(BaseSupersetView):
             return json_error_response(DATASOURCE_ACCESS_ERR)
         return json_success(json.dumps(datasource.data))
 
-    @has_access
     @expose("/queries/<last_updated_ms>")
     def queries(self, last_updated_ms):
         """Get the updated queries."""
