@@ -312,38 +312,29 @@ class DruidDatasource(Model, BaseDatasource):
 
     """ORM object referencing Druid datasources (tables)"""
 
+    __tablename__ = 'datasources'
+
     type = "druid"
     query_langtage = "json"
-    metric_class = DruidMetric
     cluster_class = DruidCluster
+    metric_class = DruidMetric
+    column_class = DruidColumn
 
     baselink = "druiddatasourcemodelview"
 
-    __tablename__ = 'datasources'
-    id = Column(Integer, primary_key=True)
+    # Columns
     datasource_name = Column(String(255), unique=True)
-    is_featured = Column(Boolean, default=False)
     is_hidden = Column(Boolean, default=False)
-    filter_select_enabled = Column(Boolean, default=False)
-    description = Column(Text)
     fetch_values_from = Column(String(100))
-    default_endpoint = Column(Text)
+    cluster_name = Column(
+        String(250), ForeignKey('clusters.cluster_name'))
+    cluster = relationship(
+        'DruidCluster', backref='datasources', foreign_keys=[cluster_name])
     user_id = Column(Integer, ForeignKey('ab_user.id'))
     owner = relationship(
         'User',
         backref=backref('datasources', cascade='all, delete-orphan'),
         foreign_keys=[user_id])
-    cluster_name = Column(
-        String(250), ForeignKey('clusters.cluster_name'))
-    cluster = relationship(
-        'DruidCluster', backref='datasources', foreign_keys=[cluster_name])
-    offset = Column(Integer, default=0)
-    cache_timeout = Column(Integer)
-    params = Column(String(1000))
-    perm = Column(String(1000))
-
-    metric_cls = DruidMetric
-    column_cls = DruidColumn
 
     export_fields = (
         'datasource_name', 'is_hidden', 'description', 'default_endpoint',
@@ -1070,6 +1061,16 @@ class DruidDatasource(Model, BaseDatasource):
             else:
                 filters = cond
         return filters
+
+    @classmethod
+    def query_datasources_by_name(
+            cls, session, database, datasource_name, schema=None):
+
+        return session.query(datasource_class)
+        .filter_by(cluster_name=database.id)
+        .filter_by(datasource_name=datasource_name)
+        .all()
+
 
 sa.event.listen(DruidDatasource, 'after_insert', set_perm)
 sa.event.listen(DruidDatasource, 'after_update', set_perm)
