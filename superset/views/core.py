@@ -1128,8 +1128,11 @@ class Superset(BaseSupersetView):
         """
         # TODO: Cache endpoint by user, datasource and column
         datasource_class = ConnectorRegistry.sources[datasource_type]
-        datasource = db.session.query(
-            datasource_class).filter_by(id=datasource_id).first()
+        datasource = (
+            db.session.query(datasource_class)
+            .filter_by(id=datasource_id)
+            .first()
+        )
 
         if not datasource:
             return json_error_response(DATASOURCE_MISSING_ERR)
@@ -1779,9 +1782,8 @@ class Superset(BaseSupersetView):
         for column_name, config in data.get('columns').items():
             is_dim = config.get('is_dim', False)
             SqlaTable = ConnectorRegistry.sources['table']
-            TableColumn = SqlaTable.column_cls
-            SqlMetric = SqlaTable.metric_cls
-
+            TableColumn = SqlaTable.column_class
+            SqlMetric = SqlaTable.metric_class
             col = TableColumn(
                 column_name=column_name,
                 filterable=is_dim,
