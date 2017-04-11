@@ -112,7 +112,7 @@ class BaseViz(object):
         """Building a query object"""
         form_data = self.form_data
         groupby = form_data.get("groupby") or []
-        metrics = form_data.get("metrics") or ['count']
+        metrics = form_data.get("metrics") or []
 
         # extra_filters are temporary/contextual filters that are external
         # to the slice definition. We use those for dynamic interactive
@@ -178,6 +178,7 @@ class BaseViz(object):
             'timeseries_limit': limit,
             'extras': extras,
             'timeseries_limit_metric': timeseries_limit_metric,
+            'form_data': form_data,
         }
         return d
 
@@ -1064,7 +1065,7 @@ class DistributionBarViz(DistributionPieViz):
     is_timeseries = False
 
     def query_obj(self):
-        d = super(DistributionPieViz, self).query_obj()  # noqa
+        d = super(DistributionBarViz, self).query_obj()  # noqa
         fd = self.form_data
         gb = fd.get('groupby') or []
         cols = fd.get('columns') or []

@@ -181,7 +181,7 @@ class SqlaTable(Model, BaseDatasource):
     baselink = "tablemodelview"
     export_fields = (
         'table_name', 'main_dttm_col', 'description', 'default_endpoint',
-        'database_id', 'is_featured', 'offset', 'cache_timeout', 'schema',
+        'database_id', 'offset', 'cache_timeout', 'schema',
         'sql', 'params')
 
     __table_args__ = (
@@ -252,14 +252,6 @@ class SqlaTable(Model, BaseDatasource):
                 "table-condensed"))
 
     @property
-    def metrics_combo(self):
-        return sorted(
-            [
-                (m.metric_name, m.verbose_name or m.metric_name)
-                for m in self.metrics],
-            key=lambda x: x[1])
-
-    @property
     def sql_url(self):
         return self.database.sql_url + "?table_name=" + str(self.table_name)
 
@@ -275,6 +267,17 @@ class SqlaTable(Model, BaseDatasource):
         for col in columns:
             if col_name == col.column_name:
                 return col
+
+    @property
+    def data(self):
+        d = super(SqlaTable, self).data
+        if self.type == 'table':
+            grains = self.database.grains() or []
+            if grains:
+                grains = [(g.name, g.name) for g in grains]
+            d['granularity_sqla'] = utils.choicify(self.dttm_cols)
+            d['time_grain_sqla'] = grains
+        return d
 
     def values_for_column(self, column_name, limit=10000):
         """Runs query against sqla to retrieve some
@@ -343,7 +346,8 @@ class SqlaTable(Model, BaseDatasource):
             inner_to_dttm=None,
             orderby=None,
             extras=None,
-            columns=None):
+            columns=None,
+            form_data=None):
         """Querying any sqla table from this common interface"""
 
         template_kwargs = {
@@ -352,6 +356,7 @@ class SqlaTable(Model, BaseDatasource):
             'metrics': metrics,
             'row_limit': row_limit,
             'to_dttm': to_dttm,
+            'form_data': form_data,
         }
         template_processor = self.get_template_processor(**template_kwargs)
 
@@ -683,12 +688,11 @@ class SqlaTable(Model, BaseDatasource):
     @classmethod
     def query_datasources_by_name(
             cls, session, database, datasource_name, schema=None):
-
-        query = session.query(cls).filter_by(
-                    database_id=database.id
-                ).filter_by(
-                    table_name=datasource_name
-                )
+        query = (
+            session.query(cls)
+            .filter_by(database_id=database.id)
+            .filter_by(table_name=datasource_name)
+        )
 
         if schema:
             query = query.filter_by(schema=schema)

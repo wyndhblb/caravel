@@ -15,6 +15,7 @@ import {
 import Button from '../../components/Button';
 
 import SouthPane from './SouthPane';
+import SaveQuery from './SaveQuery';
 import Timer from '../../components/Timer';
 import SqlEditorLeftBar from './SqlEditorLeftBar';
 import AceEditorWrapper from './AceEditorWrapper';
@@ -101,6 +102,7 @@ class SqlEditor extends React.PureComponent {
   }
 
   render() {
+    const qe = this.props.queryEditor;
     let limitWarning = null;
     if (this.props.latestQuery && this.props.latestQuery.limit_reached) {
       const tooltip = (
@@ -148,12 +150,19 @@ class SqlEditor extends React.PureComponent {
         <div className="pull-left">
           <Form inline>
             <RunQueryActionButton
-              allowAsync={this.props.database && this.props.database.allow_run_async}
-              dbId={this.props.queryEditor.dbId}
+              allowAsync={this.props.database ? this.props.database.allow_run_async : false}
+              dbId={qe.dbId}
               queryState={this.props.latestQuery && this.props.latestQuery.state}
               runQuery={this.runQuery.bind(this)}
-              selectedText={this.props.queryEditor.selectedText}
+              selectedText={qe.selectedText}
               stopQuery={this.stopQuery.bind(this)}
+            />
+            <SaveQuery
+              defaultLabel={qe.title}
+              sql={qe.sql}
+              onSave={this.props.actions.saveQuery}
+              schema={qe.schema}
+              dbId={qe.dbId}
             />
             {ctasControls}
           </Form>

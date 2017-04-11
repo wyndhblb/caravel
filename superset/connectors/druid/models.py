@@ -268,16 +268,6 @@ class DruidMetric(Model, BaseMetric):
         enable_typechecks=False)
     json = Column(Text)
 
-    def refresh_datasources(self, datasource_name=None, merge_flag=False):
-        """Refresh metadata of all datasources in the cluster
-
-        If ``datasource_name`` is specified, only that datasource is updated
-        """
-        self.druid_version = self.get_druid_version()
-        for datasource in self.get_datasources():
-            if datasource not in conf.get('DRUID_DATA_SOURCE_BLACKLIST'):
-                if not datasource_name or datasource_name == datasource:
-                    DruidDatasource.sync_to_db(datasource, self, merge_flag)
     export_fields = (
         'metric_name', 'verbose_name', 'metric_type', 'datasource_name',
         'json', 'description', 'is_restricted', 'd3format'
@@ -338,14 +328,8 @@ class DruidDatasource(Model, BaseDatasource):
 
     export_fields = (
         'datasource_name', 'is_hidden', 'description', 'default_endpoint',
-        'cluster_name', 'is_featured', 'offset', 'cache_timeout', 'params'
+        'cluster_name', 'offset', 'cache_timeout', 'params'
     )
-
-    @property
-    def metrics_combo(self):
-        return sorted(
-            [(m.metric_name, m.verbose_name) for m in self.metrics],
-            key=lambda x: x[1])
 
     @property
     def database(self):
@@ -725,7 +709,7 @@ class DruidDatasource(Model, BaseDatasource):
             orderby=None,
             extras=None,  # noqa
             select=None,  # noqa
-            columns=None, phase=2, client=None):
+            columns=None, phase=2, client=None, form_data=None):
         """Runs a query against Druid and returns a dataframe.
 
         This query interface is common to SqlAlchemy and Druid
@@ -784,7 +768,7 @@ class DruidDatasource(Model, BaseDatasource):
                         mconf.get('probabilities', ''),
                     )
                 elif mconf.get('type') == 'fieldAccess':
-                    post_aggs[metric_name] = Field(mconf.get('name'), '')
+                    post_aggs[metric_name] = Field(mconf.get('name'))
                 elif mconf.get('type') == 'constant':
                     post_aggs[metric_name] = Const(
                         mconf.get('value'),
@@ -792,7 +776,7 @@ class DruidDatasource(Model, BaseDatasource):
                     )
                 elif mconf.get('type') == 'hyperUniqueCardinality':
                     post_aggs[metric_name] = HyperUniqueCardinality(
-                        mconf.get('name'), ''
+                        mconf.get('name')
                     )
                 else:
                     post_aggs[metric_name] = Postaggregator(
@@ -982,10 +966,10 @@ class DruidDatasource(Model, BaseDatasource):
             if op in ('in', 'not in'):
                 eq = [
                     types.replace("'", '').strip()
-                    if isinstance(types, basestring)
+                    if isinstance(types, string_types)
                     else types
                     for types in eq]
-            elif not isinstance(flt['val'], basestring):
+            elif not isinstance(flt['val'], string_types):
                 eq = eq[0] if len(eq) > 0 else ''
             if col in self.num_cols:
                 if op in ('in', 'not in'):
@@ -1068,13 +1052,12 @@ class DruidDatasource(Model, BaseDatasource):
     @classmethod
     def query_datasources_by_name(
             cls, session, database, datasource_name, schema=None):
-
-        return session.query(cls).filter_by(
-                cluster_name=database.id
-            ).filter_by(
-                datasource_name=datasource_name
-            ).all()
-
+        return (
+            session.query(cls)
+            .filter_by(cluster_name=database.id)
+            .filter_by(datasource_name=datasource_name)
+            .all()
+        )
 
 sa.event.listen(DruidDatasource, 'after_insert', set_perm)
 sa.event.listen(DruidDatasource, 'after_update', set_perm)

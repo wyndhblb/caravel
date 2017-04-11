@@ -15,8 +15,8 @@ import pytz
 import smtplib
 import sqlalchemy as sa
 import signal
-import sys
 import uuid
+import sys
 import zlib
 
 from builtins import object
@@ -356,8 +356,8 @@ def generic_find_constraint_name(table, columns, referenced, db):
 
     for fk in t.foreign_key_constraints:
         if (
-                fk.referred_table.name == referenced and
-                set(fk.column_keys) == columns):
+                        fk.referred_table.name == referenced and
+                        set(fk.column_keys) == columns):
             return fk.name
 
 
@@ -578,40 +578,31 @@ def setup_cache(app, cache_config):
 
 def zlib_compress(data):
     """
-    compress things in a py2/3 safe fashion
-
+    Compress things in a py2/3 safe fashion
     >>> json_str = '{"test": 1}'
     >>> blob = zlib_compress(json_str)
     """
-
     if PY3K:
         if isinstance(data, str):
             return zlib.compress(bytes(data, "utf-8"))
-        else:
-            return zlib.compress(data)
-    else:
         return zlib.compress(data)
+    return zlib.compress(data)
 
 
-def zlib_uncompress_to_string(blob):
+def zlib_decompress_to_string(blob):
     """
-    uncompress things to a string in a py2/3 safe fashion
+    Decompress things to a string in a py2/3 safe fashion
     >>> json_str = '{"test": 1}'
     >>> blob = zlib_compress(json_str)
-    >>> got_str = zlib_uncompress_to_string(blob)
+    >>> got_str = zlib_decompress_to_string(blob)
     >>> got_str == json_str
     True
     """
-
     if PY3K:
-        decompressed = ""
         if isinstance(blob, bytes):
             decompressed = zlib.decompress(blob)
         else:
             decompressed = zlib.decompress(bytes(blob, "utf-8"))
-
-        if isinstance(decompressed, str):
-            return decompressed
         return decompressed.decode("utf-8")
-    else:
-        return zlib.decompress(blob)
+    return zlib.decompress(blob)
+

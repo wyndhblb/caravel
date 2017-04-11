@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import Mustache from 'mustache';
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { Alert, Collapse, Label, Panel } from 'react-bootstrap';
@@ -57,6 +58,7 @@ class ChartContainer extends React.PureComponent {
 
   componentDidUpdate(prevProps) {
     if (
+        this.props.queryResponse &&
         (
           prevProps.queryResponse !== this.props.queryResponse ||
           prevProps.height !== this.props.height ||
@@ -100,6 +102,14 @@ class ChartContainer extends React.PureComponent {
       width: () => this.chartContainerRef.getBoundingClientRect().width,
 
       height: getHeight,
+
+      render_template: (s) => {
+        const context = {
+          width: this.width,
+          height: this.height,
+        };
+        return Mustache.render(s, context);
+      },
 
       setFilter: () => {},
 
