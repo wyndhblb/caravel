@@ -623,19 +623,15 @@ class HiveEngineSpec(PrestoEngineSpec):
             db, datasource_type, force=force)
 
     @classmethod
-    def progress(cls, logs):
+    def progress(cls, lines):
         # 2017-04-11 20:35:22,230 Stage-1 map = 91%,  reduce = 30%, Cumulative CPU 1892.47 sec
         stage_progress = re.compile(
             r'.*Stage.*'
             r'map = (?P<map_progress>[0-9]+)%.*'
             r'reduce = (?P<reduce_progress>[0-9]+)%.*')
 
-        total_jobs = None
-        current_job = None
         stage_percentage = None
-        stages = {}
         for line in lines:
-            #logging.info(">> %s" % line)
             match = stage_progress.match(line)
             if match:
                 map_progress = int(match.groupdict()['map_progress'])
@@ -645,7 +641,6 @@ class HiveEngineSpec(PrestoEngineSpec):
         if not stage_percentage:
             return 0
 
-        #logging.info("progress: %s" % stage_percentage)
         return int(stage_percentage)
 
     @classmethod
