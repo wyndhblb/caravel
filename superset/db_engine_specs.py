@@ -642,6 +642,12 @@ class HiveEngineSpec(PrestoEngineSpec):
             return 0
 
         return int(stage_percentage)
+ 
+    @classmethod
+    def adjust_database_uri(cls, uri, selected_schema=None):
+        if selected_schema:
+            uri.database = selected_schema
+        return uri
 
     @classmethod
     def handle_cursor(cls, cursor, query, session):
